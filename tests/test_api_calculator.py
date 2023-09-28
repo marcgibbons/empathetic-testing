@@ -1,17 +1,32 @@
 # tests/test_api_calculator.py
-from unittest.mock import patch
-
-from django.test import RequestFactory
-from loans.views import calculator
+from rest_framework.test import APIClient
 
 
-@patch("loans.views.get_amortization_schedule")
-def test_calculator_api(mock):
-    rf = RequestFactory()
+def test_api_10_000_loan_with_3_payments_over_3_years_at_10_percent():
     data = {"principal": 10_000, "rate": 0.1, "number_of_periods": 3}
-    request = rf.get("/schedule/", data)
-    response = calculator(request)
-
-    mock.assert_called_once_with(**data)
+    client = APIClient()
+    response = client.get("/calculator/", data)
     assert response.status_code == 200
-    assert response.data == mock.return_value
+
+    result = response.json()
+    expected = [
+        {
+            "balance": 6_978.85,
+            "interest": 1_000,
+            "payment": 4_021.15,
+            "principal": 3_021.15,
+        },
+        {
+            "balance": 3_655.59,
+            "interest": 697.89,
+            "payment": 4_021.15,
+            "principal": 3_323.26,
+        },
+        {
+            "balance": 0,
+            "interest": 365.56,
+            "payment": 4_021.15,
+            "principal": 3_655.59,
+        },
+    ]
+    assert result == expected
