@@ -10,7 +10,7 @@ def test_get_per():
 
 def test_get_interest_paid():
     kwargs = {"rate": 0.1, "per": [1, 2, 3], "nper": 3, "pv": 10_000}
-    with patch("numpy.ipmt", return_value=-0.333) as mock_ipmt:
+    with patch("numpy_financial.ipmt", return_value=-0.333) as mock_ipmt:
         interest_paid = calculators.get_interest_paid(**kwargs)
 
     assert interest_paid == 0.33
@@ -19,7 +19,7 @@ def test_get_interest_paid():
 
 def test_get_principal_paid():
     kwargs = {"rate": 0.1, "per": [1, 2, 3], "nper": 3, "pv": 10_000}
-    with patch("numpy.ppmt", return_value=-2.878) as mock_ppmt:
+    with patch("numpy_financial.ppmt", return_value=-2.878) as mock_ppmt:
         interest_paid = calculators.get_principal_paid(**kwargs)
 
     assert interest_paid == 2.88
