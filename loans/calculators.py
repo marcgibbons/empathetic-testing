@@ -1,4 +1,5 @@
 import numpy as np
+import numpy_financial as npf
 
 
 def get_amortization_schedule(principal, rate, number_of_periods):
@@ -30,11 +31,11 @@ def get_per(number_of_periods):
 
 
 def get_interest_paid(rate, per, nper, pv):
-    return -np.round(np.ipmt(rate=rate, per=per, nper=nper, pv=pv), 2)
+    return -np.round(npf.ipmt(rate=rate, per=per, nper=nper, pv=pv), 2)
 
 
 def get_principal_paid(rate, per, nper, pv):
-    return -np.round(np.ppmt(rate=rate, per=per, nper=nper, pv=pv), 2)
+    return -np.round(npf.ppmt(rate=rate, per=per, nper=nper, pv=pv), 2)
 
 
 def get_payment(interest_paid, principal_paid):
