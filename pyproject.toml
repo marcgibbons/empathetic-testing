@@ -1,0 +1,18 @@
+[tool.black]
+target-version = ["py311"]
+line-length = 79
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+
+[tool.ruff]
+line-length = 79
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "empathetic_mortgage.settings"
