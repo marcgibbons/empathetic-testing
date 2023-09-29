@@ -30,3 +30,12 @@ def test_api_10_000_loan_with_3_payments_over_3_years_at_10_percent():
         },
     ]
     assert result == expected
+
+
+def test_api_with_0_periods():
+    data = {"principal": 10_000, "rate": 0.1, "number_of_periods": 0}
+
+    client = APIClient()
+    response = client.get("/calculator/", data)
+    assert response.status_code == 200
+    assert response.json() == []
