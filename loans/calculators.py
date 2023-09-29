@@ -24,4 +24,5 @@ def get_amortization_schedule(principal, rate, number_of_periods):
             "payment": interest_paid + principal_paid,
         }
     )
+    df = df.round(2)
     return df.to_dict("records")
