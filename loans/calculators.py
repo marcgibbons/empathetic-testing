@@ -1,46 +1,27 @@
 import numpy as np
 import numpy_financial as npf
+import pandas as pd
 
 
 def get_amortization_schedule(principal, rate, number_of_periods):
     if not number_of_periods:
         return []
 
-    pv = principal
-    nper = number_of_periods
+    npf_kwargs = {
+        "nper": number_of_periods,
+        "per": np.arange(number_of_periods) + 1,
+        "pv": principal,
+        "rate": rate,
+    }
+    principal_paid = -npf.ppmt(**npf_kwargs)
+    interest_paid = -npf.ipmt(**npf_kwargs)
 
-    per = get_per(number_of_periods)
-    interest_paid = get_interest_paid(rate, per, nper, pv)
-    principal_paid = get_principal_paid(rate, per, nper, pv)
-    payment = get_payment(interest_paid, principal_paid)
-    balance = get_balance(principal, principal_paid)
-
-    return [
+    df = pd.DataFrame(
         {
-            "balance": balance[i],
-            "interest": interest_paid[i],
-            "payment": payment[i],
-            "principal": principal_paid[i],
+            "balance": principal - principal_paid.cumsum(),
+            "interest": interest_paid,
+            "principal": principal_paid,
+            "payment": interest_paid + principal_paid,
         }
-        for i in range(number_of_periods)
-    ]
-
-
-def get_per(number_of_periods):
-    return np.arange(number_of_periods) + 1
-
-
-def get_interest_paid(rate, per, nper, pv):
-    return -np.round(npf.ipmt(rate=rate, per=per, nper=nper, pv=pv), 2)
-
-
-def get_principal_paid(rate, per, nper, pv):
-    return -np.round(npf.ppmt(rate=rate, per=per, nper=nper, pv=pv), 2)
-
-
-def get_payment(interest_paid, principal_paid):
-    return np.round(interest_paid + principal_paid, 2)
-
-
-def get_balance(principal, principal_paid):
-    return principal - principal_paid.cumsum()
+    )
+    return df.to_dict("records")
