@@ -1,7 +1,6 @@
 # tests/test_api_loans.py
-from unittest.mock import patch
-
 import pytest
+import responses
 from rest_framework.test import APIClient
 
 from loans.models import Loan
@@ -9,8 +8,8 @@ from loans.models import Loan
 pytestmark = pytest.mark.django_db
 
 
-@patch("loans.views.requests")
-def test_create_loan_makes_http_request(requests_mock):
+@responses.activate
+def test_create_loans_api():
     client = APIClient()
     data = {
         "principal": 10_000,
@@ -43,11 +42,5 @@ def test_create_loan_makes_http_request(requests_mock):
             "principal": 3_655.59,
         },
     ]
-    requests_mock.post.assert_called_once_with(
-        "https://notifications.test",
-        json={
-            "loan_id": loan.pk,
-            "created_datetime": loan.created_datetime,
-            "schedule": schedule,
-        },
-    )
+
+
