@@ -1,42 +1,53 @@
 # tests/test_api_loans.py
 from unittest.mock import patch
 
-from django.http import QueryDict
-from django.test import RequestFactory
+import pytest
+from rest_framework.test import APIClient
 
-from loans.views import loans as loans_view
+from loans.models import Loan
+
+pytestmark = pytest.mark.django_db
 
 
 @patch("loans.views.requests")
-@patch("loans.views.get_amortization_schedule")
-@patch("loans.views.LoanSerializer")
-def test_create_loans_api(serializer_mock, amort_mock, requests_mock):
-    rf = RequestFactory()
-    data = {"principal": "10000", "rate": "0.1"}
-    request = rf.post("/calculator/", data)
-    response = loans_view(request)
+def test_create_loan_makes_http_request(requests_mock):
+    client = APIClient()
+    data = {
+        "principal": 10_000,
+        "rate": 0.1,
+        "number_of_periods": 3,
+    }
+    response = client.post("/loans/", data)
+    assert response.status_code == 201
 
-    assert response.status_code == 201  # Success!
-    assert response.data == serializer_mock.return_value.data
+    result = response.json()
+    loan = Loan.objects.get(pk=result["id"])
 
-    # Django transforms the query params into a QueryDict
-    query_dict = QueryDict(mutable=True)
-    query_dict.update(data)
-
-    # Serializer was instantiated with the data
-    serializer_mock.assert_called_once_with(data=query_dict)
-
-    # Test that the object is saved
-    save = serializer_mock.return_value.save
-    save.assert_called_once_with()
-    loan = save.return_value
-
-    # Test that the notification is sent with the schedule
+    schedule = [
+        {
+            "balance": 6_978.85,
+            "interest": 1_000,
+            "payment": 4_021.15,
+            "principal": 3_021.15,
+        },
+        {
+            "balance": 3_655.59,
+            "interest": 697.89,
+            "payment": 4_021.15,
+            "principal": 3_323.26,
+        },
+        {
+            "balance": 0,
+            "interest": 365.56,
+            "payment": 4_021.15,
+            "principal": 3_655.59,
+        },
+    ]
     requests_mock.post.assert_called_once_with(
         "https://notifications.test",
         json={
             "loan_id": loan.pk,
             "created_datetime": loan.created_datetime,
-            "schedule": amort_mock.return_value,
+            "schedule": schedule,
         },
     )
