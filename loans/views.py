@@ -17,7 +17,8 @@ class ScheduleParamSerializer(serializers.Serializer):
 def calculator(request):
     serializer = ScheduleParamSerializer(data=request.query_params)
     serializer.is_valid(raise_exception=True)
-    data = get_amortization_schedule(**serializer.data)
+    schedule = get_amortization_schedule(**serializer.data)
+    data = schedule.to_dict("records")
 
     return Response(data)
 
@@ -48,7 +49,7 @@ def loans(request):
         "https://notifications.test",
         json={
             "loan_id": loan.pk,
-            "schedule": schedule,
+            "schedule": schedule.to_dict("records"),
             "created_datetime": loan.created_datetime.isoformat(),
         },
     )

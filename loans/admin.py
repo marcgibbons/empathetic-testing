@@ -1,4 +1,3 @@
-import pandas as pd
 from django.contrib import admin
 from django.utils.html import format_html
 
@@ -25,10 +24,9 @@ class LoanAdmin(admin.ModelAdmin):
 
     @admin.display
     def amortization_schedule(self, obj):
-        schedule = calculators.get_amortization_schedule(
+        df = calculators.get_amortization_schedule(
             principal=obj.principal,
             number_of_periods=obj.number_of_periods,
             rate=obj.rate,
         )
-        df = pd.DataFrame.from_dict(schedule)
         return format_html(df.to_html(index=False, classes=["schedule"]))
