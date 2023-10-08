@@ -1,17 +1,58 @@
 # tests/test_calculators.py
+import json
+import pandas as pd
 import pytest
+import responses
+from django.contrib.auth import get_user_model
+from django.test import Client
+from pyquery import PyQuery as pq
+from rest_framework.test import APIClient
+
+from loans.models import Loan
+
+pytestmark = pytest.mark.django_db
 
 
 def get_schedule_from_calculator_api(**kwargs):
-    raise NotImplementedError
+    client = APIClient()
+    response = client.get("/calculator/", data=kwargs)
+    assert response.status_code == 200
+    return response.json()
 
 
 def get_schedule_from_loan_admin(**kwargs):
-    raise NotImplementedError
+    user = get_user_model().objects.create(is_staff=True, is_superuser=True)
+    client = Client()
+    client.force_login(user)
+    loan = Loan.objects.create(**kwargs)
+
+    response = client.get(f"/admin/loans/loan/{loan.pk}/change/")
+    assert response.status_code == 200
+
+    dom = pq(response.content)
+    table = dom.find("table.schedule")
+    data = [
+        row.text_content().strip().replace(" ", "").split("\n")
+        for row in table.find("tr")
+    ]
+    df = pd.DataFrame(data[1:], columns=data[0])
+    df = df.astype(float)  # Values parsed as strings, cast as floats.
+    return df.to_dict("records")
 
 
+@responses.activate
 def get_schedule_sent_on_loan_create(**kwargs):
-    raise NotImplementedError
+    responses.post("https://notifications.test")  # Register HTTP call
+
+    client = APIClient()
+    data = {"principal": 10_000, "rate": 0.1, "number_of_periods": 3}
+    response = client.post("/loans/", data)
+    assert response.status_code == 201
+
+    assert responses.calls, "Expected HTTP call"
+    request = responses.calls[0].request  # Grab first (and only) request
+    sent_data = json.loads(request.body)
+    return sent_data["schedule"]
 
 
 @pytest.mark.parametrize(
