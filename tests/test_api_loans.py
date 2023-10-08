@@ -51,6 +51,6 @@ def test_create_loans_api():
 
     assert sent_data == {
         "loan_id": loan.pk,
-        "created_datetime": loan.created_datetime,
+        "created_datetime": loan.created_datetime.isoformat(),
         "schedule": schedule,
     }

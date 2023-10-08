@@ -48,8 +48,8 @@ def loans(request):
         "https://notifications.test",
         json={
             "loan_id": loan.pk,
-            "created_datetime": loan.created_datetime,
             "schedule": schedule,
+            "created_datetime": loan.created_datetime.isoformat(),
         },
     )
 
