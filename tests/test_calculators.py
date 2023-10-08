@@ -45,8 +45,7 @@ def get_schedule_sent_on_loan_create(**kwargs):
     responses.post("https://notifications.test")  # Register HTTP call
 
     client = APIClient()
-    data = {"principal": 10_000, "rate": 0.1, "number_of_periods": 3}
-    response = client.post("/loans/", data)
+    response = client.post("/loans/", data=kwargs)
     assert response.status_code == 201
 
     assert responses.calls, "Expected HTTP call"
@@ -85,3 +84,16 @@ def test_10_000_loan_with_3_payments_over_3_years_at_10_percent(get_schedule):
             "principal": 3_655.59,
         },
     ]
+
+
+@pytest.mark.parametrize(
+    "get_schedule",
+    [
+        get_schedule_from_calculator_api,
+        get_schedule_from_loan_admin,
+        get_schedule_sent_on_loan_create,
+    ],
+)
+def test_no_periods(get_schedule):
+    schedule = get_schedule(principal=0, rate=0, number_of_periods=0)
+    assert schedule == []
