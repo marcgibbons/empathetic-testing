@@ -1,5 +1,6 @@
 Django==4.2.5
 djangorestframework==3.14.0
+freezegun==1.2.2
 numpy-financial==1.0.0
 numpy==1.26.0
 pandas==2.1.1

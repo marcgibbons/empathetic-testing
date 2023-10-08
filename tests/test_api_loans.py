@@ -3,6 +3,7 @@ import json
 
 import pytest
 import responses
+from freezegun import freeze_time
 from rest_framework.test import APIClient
 
 from loans.models import Loan
@@ -10,6 +11,7 @@ from loans.models import Loan
 pytestmark = pytest.mark.django_db
 
 
+@freeze_time("2023-10-17T16:00Z")
 @responses.activate
 def test_create_loans_api():
     responses.post("https://notifications.test")  # Register HTTP call
@@ -17,6 +19,7 @@ def test_create_loans_api():
     client = APIClient()
     data = {"principal": 10_000, "rate": 0.1, "number_of_periods": 3}
     response = client.post("/loans/", data)
+
     assert response.status_code == 201
 
     result = response.json()
@@ -51,6 +54,6 @@ def test_create_loans_api():
 
     assert sent_data == {
         "loan_id": loan.pk,
-        "created_datetime": loan.created_datetime.isoformat(),
+        "created_datetime": "2023-10-17T16:00:00+00:00",
         "schedule": schedule,
     }
